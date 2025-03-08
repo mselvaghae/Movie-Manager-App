@@ -90,21 +90,19 @@ Le frontend est développé avec **Blazor** et permet une expérience utilisateu
 ```bash
 git clone https://github.com/votre-utilisateur/movie-manager-app.git
 ```
-2. Configurer la base de données
+### **2. Configurer la base de données**
 Configurer la chaîne de connexion dans le fichier appsettings.json :
 
-json
-Copier
-Modifier
+```json
+
 "ConnectionStrings": {
   "DefaultConnection": "Data Source=movies.db"
 }
-3. Configurer le token JWT et la clé API OMDB
+```
+### **3. Configurer le token JWT et la clé API OMDB**
 Dans appsettings.json :
 
-json
-Copier
-Modifier
+```json
 "JwtSettings": {
   "Secret": "VOTRE_SECRET_JWT",
   "Issuer": "https://localhost:5001",
@@ -113,25 +111,28 @@ Modifier
 "OMDB": {
   "ApiKey": "VOTRE_CLÉ_OMDB"
 }
-4. Appliquer les migrations Entity Framework
-bash
+```
+### **4. Appliquer les migrations Entity Framework**
+```bash
 Copier
 Modifier
 dotnet ef database update
+```
 5. Lancer le projet
 Backend :
 
-bash
+```bash
 Copier
 Modifier
-dotnet run --project MovieManagerAPI
+dotnet run backend
+```
 Frontend :
 
-bash
-Copier
+```bash
 Modifier
-dotnet run --project MovieManagerBlazor
-✅ Utilisation
+dotnet run frontend
+```
+✅ **Utilisation**
 Créez un compte via le formulaire d'inscription
 Connectez-vous avec votre pseudo et mot de passe
 Parcourez la liste des films et ajoutez-les à vos favoris

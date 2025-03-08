@@ -118,7 +118,7 @@ Copier
 Modifier
 dotnet ef database update
 ```
-5. Lancer le projet
+### **5. Lancer le projet**
 Backend :
 
 ```bash
@@ -132,50 +132,46 @@ Frontend :
 Modifier
 dotnet run frontend
 ```
-✅ **Utilisation**
-Créez un compte via le formulaire d'inscription
-Connectez-vous avec votre pseudo et mot de passe
-Parcourez la liste des films et ajoutez-les à vos favoris
-Accédez à la page admin pour importer des films
-Gérez les utilisateurs et rôles via la page admin
-🔒 Sécurité
-Les mots de passe sont hashés avant d'être stockés
-Les routes protégées nécessitent un token JWT valide
-Gestion des rôles pour protéger l'accès à certaines pages
-📂 Structure du Projet
-pgsql
-Copier
-Modifier
-├── MovieManagerAPI
+---
+## ✅ **Utilisation**
+1.Créez un compte via le formulaire d'inscription
+2.Connectez-vous avec votre pseudo et mot de passe
+3.Parcourez la liste des films et ajoutez-les à vos favoris
+4.Accédez à la page admin pour importer des films
+5.Gérez les utilisateurs et rôles via la page admin
+
+## 📋 **Comptes Utilisateurs**
+des utilisateurs qui sont déja exist 
+
+| **Nom d'Utilisateur** | **Mot de Passe** | **Rôle** |
+|:----------------------|:-----------------|:----------|
+| `string`               | `string`         | `user`     |
+| `azerty`               | `azerty`         | `user`     |
+| `admin`                | `admin`          | `admin`    |
+
+## 🔒**Sécurité**
+
+- Les mots de passe sont hashés avant d'être stockés
+- Les routes protégées nécessitent un token JWT valide
+- Gestion des rôles pour protéger l'accès à certaines pages
+  
+##📂 **Structure du Projet**
+```pgsql
+├── TrackerdeFavorisApi
 │   ├── Controllers
 │   ├── Models
 │   ├── Services
 │   └── Data
-├── MovieManagerBlazor
+├── TrackerdeFavorisFront
 │   ├── Components
 │   ├── Pages
 │   └── Services
 ├── appsettings.json
-├── README.md
-🏆 Améliorations Futures
-✅ Intégration d'un système de recherche avancée
-✅ Amélioration de l'interface utilisateur
-✅ Gestion des catégories de films
-💡 Contribuer
-Les contributions sont les bienvenues !
-
-Forkez le projet
-Créez une branche (git checkout -b feature/ma-nouvelle-fonctionnalité)
-Commitez vos modifications (git commit -am 'Ajout d'une nouvelle fonctionnalité')
-Poussez votre branche (git push origin feature/ma-nouvelle-fonctionnalité)
-Créez une Pull Request
-🪪 Licence
+├── readme.md
+```
+## 🪪 **Licence**
 Ce projet est sous licence MIT – voir le fichier LICENSE pour plus de détails.
 
-🌟 Auteur
-Développé par [Votre Nom] – [Lien vers votre profil GitHub]
+## 🔗 **Liens utiles**
 
-🔗 Liens utiles
-
-📚 Documentation C# : https://csharp.nouvet.fr
 🌐 OMDB API : https://www.omdbapi.com

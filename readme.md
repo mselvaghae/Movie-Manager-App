@@ -155,7 +155,7 @@ des utilisateurs qui sont déja exist
 - Les routes protégées nécessitent un token JWT valide
 - Gestion des rôles pour protéger l'accès à certaines pages
   
-##📂 **Structure du Projet**
+## 📂 **Structure du Projet**
 ```pgsql
 ├── TrackerdeFavorisApi
 │   ├── Controllers

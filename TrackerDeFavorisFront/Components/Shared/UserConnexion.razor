@@ -1,0 +1,113 @@
+﻿@using System.IdentityModel.Tokens.Jwt
+@inject UserService userService;
+@inject NavigationManager Navigation;
+
+@rendermode InteractiveServer
+@inject AuthenticationStateProvider authProvider
+
+<style>
+    .form-container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-size: 14px;
+        color: #333;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .btn-block {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    h1 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+</style>
+
+
+<h1 class="text-center">Connexion</h1>
+
+<EditForm Model="userInfoProvided" OnSubmit="Login" class="form-container">
+    <div class="form-group">
+        <label for="login">Nom d'utilisateur</label>
+        <InputText id="login" class="form-control" placeholder="nom d'utilisateur" required @bind-Value="userInfoProvided.Username" />
+    </div>
+
+    <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <InputText type="password" id="password" class="form-control" placeholder="mot de passe" required @bind-Value="userInfoProvided.Password" />
+    </div>
+
+    <div>
+        <button type="submit" class="btn btn-primary">Se connecter</button>
+        <a href="/inscription" class="btn btn-secondary">S'inscrire</a>
+    </div>
+    @if (validPassword == false) 
+    {
+        <div class="alert alert-danger text-center">
+            Identifiant/mot de passe incorrect !
+        </div>
+    }
+</EditForm>
+
+
+    @code {
+    UserInfo userInfoProvided = new UserInfo("","");
+    
+    bool validPassword = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Si l'utilisateur est connecté, on redirige sur le home
+        bool connected = await isUserConnected();
+        if (connected)
+        {
+            Navigation.NavigateTo("/");
+        }
+    }
+
+    private async Task<bool> isUserConnected()
+    {
+        var authState = await authProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        return user.Identity?.IsAuthenticated ?? false;
+    }
+
+    private async Task Login()
+    {
+        UserLogin? user;
+        validPassword = true;
+        user = await userService.LoginUser(userInfoProvided);
+
+        if (user != null)
+        {
+            await ((AuthProvider)authProvider).SetUserLoginToSessionStorage(user);
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            validPassword = false;
+        }
+    }
+}

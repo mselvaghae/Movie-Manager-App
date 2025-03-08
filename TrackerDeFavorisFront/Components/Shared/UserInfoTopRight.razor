@@ -1,0 +1,53 @@
+﻿@inject AuthenticationStateProvider authProvider
+@rendermode InteractiveServer
+
+<AuthorizeView>
+    <Authorized>
+        <div class="nav-item px-3">
+
+            Bonjour
+            @context.User.FindFirst(ClaimTypes.Name)?.Value
+            (@context.User.FindFirst(ClaimTypes.Role)?.Value.ToLower())
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="deconnexion">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Déconnexion
+            </NavLink>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="connexion">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Connexion
+            </NavLink>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    public bool _isLogged = false;
+    AuthenticationState? _authState;
+    public string? currUserName;
+    public string? currUserRole;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.Update();
+    }
+
+    private async Task Update()
+    {
+        _isLogged = false;
+        _authState = await authProvider.GetAuthenticationStateAsync();
+        var authUser = _authState.User;
+        bool isLogged = authUser.Identity?.IsAuthenticated ?? false;
+        if (isLogged)
+        {
+            currUserName = authUser.FindFirstValue(ClaimTypes.Name);
+            currUserRole = authUser.FindFirstValue(ClaimTypes.Role);
+
+            _isLogged = true;
+        }
+    }
+}

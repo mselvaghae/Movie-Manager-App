@@ -1,0 +1,60 @@
+@page "/users"
+@rendermode InteractiveServer
+
+@inject UserService _userService
+@inject AuthenticationStateProvider authProvider;
+
+<div class="container mt-5 center">
+    <div class="text-center mb-4">
+        <h2 class="text-primary">Liste des Utilisateurs</h2>
+    </div>
+    <div class="align-content-center">
+        @if (listUsers == null || listUsers.Count == 0)
+        {
+            <div class="alert alert-warning text-center" role="alert">
+                <h4>Aucun utilisateur trouvé</h4>
+            </div>
+        }
+        else {
+            @if (deletionError) {
+                <span class="alert alert-warning" role="alert">Erreur lors de la suppression</span>
+            }
+            @foreach (var user in listUsers)
+            {
+                <UserCard user="user">
+                    <AuthorizeView Roles="ADMIN">
+                        <Authorized>
+                            <button class="btn btn-primary" @onclick="() => DeleteUser(user)">Supprimer l'utilisateur</button>
+                        </Authorized>
+                    </AuthorizeView>
+                </UserCard>
+            }
+        }
+    </div>
+
+</div>
+
+@code {
+    bool deletionError = false;
+    private List<PublicUser>? listUsers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        listUsers = await _userService.GetAllUsers();
+
+    }
+
+    private async Task DeleteUser(PublicUser user) {
+        string token = await ((AuthProvider)authProvider).GetToken();
+        bool success = await _userService.DeleteUser(user.Id, token);
+        if (success)
+        {
+            deletionError = false;
+            listUsers?.Remove(user);
+        }
+        else
+        {
+            deletionError = true;
+        }
+    }
+}

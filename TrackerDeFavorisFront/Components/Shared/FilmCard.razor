@@ -1,0 +1,23 @@
+﻿<article class="card" style="width: 18rem;">
+    
+    <img src="@film?.Poster" class="card-img-top" alt="Poster du film @film?.Titre" width="250" height="400">
+    
+    <div class="card-body">
+        
+        <h5 class="card-title">@film?.Titre</h5>
+        <p class="card-text">
+            @film?.AnneeSortie, @film?.ImdbId
+        </p>
+        @ChildContent
+
+        
+    </div>
+
+</article>
+
+@code {
+    [Parameter]
+    public FilmInfo? film { get; set; }
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

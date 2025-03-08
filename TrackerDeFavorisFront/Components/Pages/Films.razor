@@ -1,0 +1,136 @@
+﻿@page "/films"
+@rendermode InteractiveServer
+
+@inject FilmService _filmService
+@inject FavoriteService _favoriteService
+@inject AuthenticationStateProvider authProvider;
+
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h2 class="text-primary">Liste des Films</h2>
+        <p class="text-muted">Découvrez et recherchez vos films préférés.</p>
+    </div>
+
+    <div class="text-center mb-4">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" @bind="searchQuery" placeholder="Entrez un titre de film" />
+            <button class="btn btn-primary" @onclick="SearchFilm">Rechercher</button>
+        </div>
+    </div>
+
+    @if (filteredFilms == null || filteredFilms.Count == 0)
+    {
+        <div class="alert alert-warning text-center" role="alert">
+            <h4>Aucun film trouvé</h4>
+        </div>
+    }
+    else 
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-3">
+            @foreach (var paire in filteredFilms)
+            {
+                <FilmCard film="paire.Key.FilmInfo">
+                    <AuthorizeView>
+                        <Authorized> 
+                            <!-- Si le film a déjà été ajouté par l'utilisateur -->
+                            @if (paire.Value) {
+                                <p class="alert-info">Film en favoris</p>
+                            }
+                            else {
+                                <button type="button" class="btn btn-primary" @onclick="@(() =>
+                                TryAddFavoris(paire.Key, context.User.FindFirst(ClaimTypes.Sid)?.Value))">
+                                    Ajouter au favoris                      
+                                </button>
+                            }
+                        </Authorized>
+                    </AuthorizeView>
+                </FilmCard>
+            }
+        </div>
+    }
+</div>
+@code
+{
+    // Liste de tous les films et leur appartenance à la liste des favoris d'un utilisateur
+    private readonly Dictionary<Film, bool> allFilms = new Dictionary<Film, bool>();
+    // Liste des films affichés à l'écran (après recherche, toujours un sous-ensemble de allFilms)
+    Dictionary<Film, bool> filteredFilms = new Dictionary<Film, bool>();
+
+    string? searchQuery { get; set; } = null;
+
+    [Parameter]
+    public int? UserId { get; set; } = null;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        string token = await ((AuthProvider)authProvider).GetToken();
+
+        List<Film>? listFilm = await _filmService.GetFilms(token);
+        if (listFilm == null) {
+            return;
+        }
+
+        int ?userId = await ((AuthProvider)authProvider).GetId();
+        List<Favorite>? listFavorite = null;
+        if (userId != null)
+        {
+            listFavorite = await _favoriteService.GetFavoris(userId.Value, token);
+        }
+        if (listFavorite == null) 
+        {
+            listFavorite = new List<Favorite>();
+        }
+
+        foreach (Film f in listFilm)
+        {
+            allFilms.Add(f, listFavorite.Any((favorite) => favorite.FilmId == f.Id));
+        }
+        filteredFilms = allFilms;
+    }
+
+    private async Task SearchFilm()
+    {
+        string token = await ((AuthProvider)authProvider).GetToken();
+
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            filteredFilms = allFilms; 
+        }
+        else {
+            List<Film>? listFilm = await _filmService.SearchFilms(searchQuery, token);
+            if (listFilm == null)
+            {
+                
+            }
+            else {
+                filteredFilms = new Dictionary<Film, bool>(allFilms.Where(paire => listFilm.Contains(paire.Key)));
+            }
+        }  
+    }
+
+    private async Task TryAddFavoris(Film favoris, string ?UserIdString) 
+    {
+        try
+        {
+            if (UserIdString == null) { 
+                throw new ArgumentNullException(); 
+            }
+            int userId = int.Parse(UserIdString);
+            await AddFavoris(favoris, userId);
+        }
+        catch (Exception e)
+        {
+            // Ne devrait pas se produire
+            Console.WriteLine(e);
+        }
+    }
+
+    private async Task AddFavoris(Film favoris, int UserId)
+    {
+        string token = await ((AuthProvider)authProvider).GetToken();
+
+        await _favoriteService.CreateFavori(new Favorite(UserId, favoris.Id), token);
+        allFilms[favoris] = true;
+    }
+}

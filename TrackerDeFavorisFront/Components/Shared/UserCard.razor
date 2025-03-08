@@ -1,0 +1,24 @@
+﻿@using System.Globalization;
+
+<style>
+    .card-body {
+        display: grid;
+        justify-content: center;
+        grid-template-columns: 1fr 1fr 2fr
+    }
+</style>
+
+<article class="card">
+    <div class="card-body">
+        <span>@user?.Username</span>
+        <span>@user?.Role.ToString().ToLower()</span>
+        <span style="width:max-content">@ChildContent</span>
+    </div>
+</article>
+
+@code {
+    [Parameter]
+    public PublicUser? user { get; set; }
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

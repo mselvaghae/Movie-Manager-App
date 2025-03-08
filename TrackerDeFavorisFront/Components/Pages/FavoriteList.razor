@@ -1,0 +1,107 @@
+﻿@page "/favoris"
+
+@rendermode InteractiveServer
+
+@inject UserService userService;
+@inject FilmService filmService;
+@inject FavoriteService favoriteService;
+@inject AuthenticationStateProvider authProvider;
+
+@inject NavigationManager Navigation
+
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h2 class="text-primary">Films favoris</h2>
+        <p class="text-muted">Votre liste de films favoris</p>
+    </div>
+
+    <a class="btn btn-primary" href="/films">Ajouter un favori</a>
+    <hr />
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+
+        @if (!favorisFound)
+        {
+            <h4>Erreur récupération favoris</h4>
+        }
+        else if (favoriteToFilmInfo.Count == 0)
+        {
+            <h4>Aucun favori enregistré</h4>
+        }
+        else {
+            @foreach (var pair in favoriteToFilmInfo)
+            {
+                FilmInfo f = pair.Value;
+                <FilmCard film="f">
+                    <button class="btn btn-primary" @onclick="async () => await DeleteFavorite(pair.Key)">
+                        Supprimer
+                    </button>
+                </FilmCard>
+
+            } 
+        }
+
+    </div>
+</div>
+@code {
+    bool favorisFound = false;
+    Dictionary<Favorite, FilmInfo> favoriteToFilmInfo = new Dictionary<Favorite, FilmInfo>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Si l'utilisateur n'est pas connecté, on redirige sur le login
+        bool connected = await isUserConnected();
+        if (!connected)
+        {
+            Navigation.NavigateTo("/connexion");
+        }
+        else
+        {
+            int ?userId = await ((AuthProvider)authProvider).GetId();
+            if (userId != null)
+            {
+                await GetFavorites(userId.Value);
+            }
+        }
+    }
+
+    private async Task<bool> isUserConnected()
+    {
+        var authState = await authProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        return user.Identity?.IsAuthenticated ?? false;
+    }
+
+    private async Task GetFavorites(int UserId)
+    {
+        try
+        {
+            string token = await ((AuthProvider)authProvider).GetToken();
+            List<Favorite>? favorites = await favoriteService.GetFavoris(UserId, token);
+
+            if (favorites != null)
+            {
+                favorisFound = true;
+                foreach (Favorite f in favorites)
+                {
+                    FilmInfo? film = await filmService.GetFilmById(f.FilmId, token);
+                    if (film == null)
+                    {
+                        throw new ServiceException("Erreur dans la BDD ou alors le service a crash entre le chargement de cette page et l'exécution de cette ligne");
+                    }
+                    favoriteToFilmInfo.Add(f, film);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+
+    private async Task DeleteFavorite(Favorite f)
+    {
+        string token = await ((AuthProvider)authProvider).GetToken();
+        await favoriteService.DeleteFavori(f.FilmId, f.UserId, token);
+        favoriteToFilmInfo.Remove(f);
+    }
+}

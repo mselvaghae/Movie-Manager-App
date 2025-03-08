@@ -1,0 +1,91 @@
+@page "/Omdb/search"
+
+@attribute [Authorize(Roles = "ADMIN")]
+@rendermode InteractiveServer
+@inject OmdbService _omdbService;
+@inject AuthenticationStateProvider authProvider;
+
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h2 class="text-primary">Ajouter un film</h2>
+        <p class="text-muted">Entrez le titre du film que vous souhaitez ajouter à notre base de données.</p>
+    </div>
+
+    <form class="input-group mb-3" @onsubmit="SearchFilm">
+        <input type="text" class="form-control" @bind="searchQuery" placeholder="Entrez un titre de film" />
+        <button type="submit" class="btn btn-primary">Rechercher</button>
+    </form>
+    @if (searchPerformed) {
+        <div class="mt-4">
+            @if (!filmFound)
+            {
+                <div class="alert alert-warning text-center" role="alert">
+                    Aucun film trouvé.
+                </div>
+            }
+            else {
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    @foreach (var f in films)
+                    {
+                        <FilmCard film="f.Key">
+                            @if (!f.Value) 
+                            {
+                                <button class="btn btn-primary" type="button" @onclick="() => AddFilm(f.Key)">
+                                    Importer film
+                                </button>
+                            }
+                            else
+                            {
+                                <p class="alert-info"> Film importé </p>        
+                            }
+                        </FilmCard>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+
+@code {
+    string searchQuery = string.Empty;
+    bool filmFound = false;
+    bool searchPerformed = false;
+    Dictionary<FilmInfo, bool> films = new Dictionary<FilmInfo, bool>();
+
+    private async Task SearchFilm()
+    {
+        searchPerformed = true;
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            return;
+        }
+        try
+        {
+            string token = await ((AuthProvider)authProvider).GetToken();
+            var listFilm = await _omdbService.GetOmdbFilms(searchQuery, token);
+
+            if (listFilm != null)
+            {
+                films.Clear();
+                foreach (FilmInfo f in listFilm)
+                {
+                    films.Add(f, false);
+                }
+                filmFound = true;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Erreur lors de la recherche : {e}");
+        }
+    }
+
+    private async Task AddFilm(FilmInfo film)
+    {
+        string token = await ((AuthProvider)authProvider).GetToken();
+        await _omdbService.ImportOmdbFilm(film.ImdbId, token);
+        films[film] = true;
+        searchPerformed = true;
+    }
+}

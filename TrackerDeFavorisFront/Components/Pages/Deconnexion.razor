@@ -1,0 +1,12 @@
+﻿@page "/deconnexion"
+@inject NavigationManager Navigation;
+@inject AuthenticationStateProvider authProvider
+
+<h3>Déconnexion en cours...</h3>
+
+@code {
+	protected override async Task OnInitializedAsync() {
+		await ((AuthProvider)authProvider).RemoveUserLoginFromSessionStorage();
+		Navigation.NavigateTo("/");
+	}
+}

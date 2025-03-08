@@ -1,0 +1,103 @@
+﻿@page "/update/user"
+
+@attribute [Authorize]
+
+@inject UserService userService;
+@inject AuthenticationStateProvider authProvider;
+@inject NavigationManager navigation;
+
+<style>
+    .form-container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-size: 14px;
+        color: #333;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .btn-block {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    h1 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+</style>
+
+
+<h1 class="text-center">Modification des informations du compte</h1>
+
+<EditForm Model="userInfoProvided" OnSubmit="ModifyCredentials" class="form-container">
+    <div class="form-group">
+        <label for="login">Nouveau nom d'utilisateur</label>
+        <InputText id="login" class="form-control" placeholder="Nouveau nom d'utilisateur" required @bind-Value="userInfoProvided.Username" />
+    </div>
+
+    <div class="form-group">
+        <label for="password">Nouveau mot de passe</label>
+        <InputText type="password" id="password" class="form-control" placeholder="mot de passe" required @bind-Value="userInfoProvided.Password" />
+    </div>
+
+    <div>
+        <button type="submit" class="btn btn-primary">Modifier l'utilisateur</button>
+    </div>
+    @if (errorModifying) {
+        <p class="alert-danger">Modification impossible</p>
+    }
+</EditForm>
+
+@code {
+
+    UserUpdate userInfoProvided = new UserUpdate("", "", Role.USER);
+    bool errorModifying = false;
+
+    public async Task ModifyCredentials() {
+        int? userId = await ((AuthProvider)authProvider).GetId();
+        if (userId == null) {
+            throw new InvalidProgramException("Utilisateur connecté sans ID impossible");
+        }
+
+        // conflit avec d'autres Role du framework, + conversion de (Role?) en (Role)...
+        TrackerDeFavorisFront.Models.Role? role = await ((AuthProvider)authProvider).GetRole();
+        if (role != null)
+        {
+            userInfoProvided.Role = (TrackerDeFavorisFront.Models.Role) role;
+        }
+
+        string? token = await ((AuthProvider)authProvider).GetToken();
+
+        UserLogin? newUser = await userService.UpdateUser(userId.Value, userInfoProvided, token);
+        if (newUser == null)
+        {
+            errorModifying = true;
+        }
+        else
+        {
+            await ((AuthProvider)authProvider).RemoveUserLoginFromSessionStorage();
+            await ((AuthProvider)authProvider).SetUserLoginToSessionStorage(newUser);
+            navigation.NavigateTo("/");
+        }
+    }
+}

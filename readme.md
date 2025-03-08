@@ -119,18 +119,15 @@ Modifier
 dotnet ef database update
 ```
 ### **5. Lancer le projet**
-Backend :
+Backend : dans TrackerFavorisApi
 
 ```bash
-Copier
-Modifier
-dotnet run backend
+dotnet run 
 ```
-Frontend :
+Frontend : dans TrackerFavorisFront
 
 ```bash
-Modifier
-dotnet run frontend
+dotnet run 
 ```
 ---
 ## ✅ **Utilisation**
